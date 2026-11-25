@@ -8,6 +8,8 @@ Panels:
     Name: Help
   - Class: rviz_common/Views
     Name: Views
+    - Class: gripper_rviz_panel/GripperPanel
+    Name: Gripper Control
 Visualization Manager:
   Displays:
     - Class: rviz_default_plugins/Grid

@@ -1,0 +1,11 @@
+
+<library path="gripper_panel">
+  <class
+    name="gripper_rviz_panel/GripperPanel"
+    type="gripper_rviz_panel::GripperPanel"
+    base_class_type="rviz_common::Panel">
+    <description>
+      Simple slider to control the robot gripper from 0 to 1.
+    </description>
+  </class>
+</library>
