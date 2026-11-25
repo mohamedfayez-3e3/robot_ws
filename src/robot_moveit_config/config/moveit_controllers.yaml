@@ -20,9 +20,9 @@ moveit_simple_controller_manager:
   gripper_controller:
     type: FollowJointTrajectory
     joints:
-      - geared_l_joint
-      - finger_l_joint
       - geared_r_joint
+      - geared_l_joint
       - finger_r_joint
+      - finger_l_joint
     action_ns: follow_joint_trajectory
-    default: false
+    default: true

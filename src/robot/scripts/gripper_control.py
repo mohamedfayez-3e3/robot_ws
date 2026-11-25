@@ -1,10 +1,16 @@
+
 #!/usr/bin/env python3
+
+import asyncio
 
 import rclpy
 from rclpy.node import Node
 
+from rclpy.action import ActionServer, GoalResponse, CancelResponse
+
 from std_msgs.msg import Float64
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
+from control_msgs.action import GripperCommand
 
 
 class GripperControl(Node):
@@ -18,6 +24,7 @@ class GripperControl(Node):
             10
         )
 
+        # Keep the old topic interface
         self.command_sub = self.create_subscription(
             Float64,
             '/gripper_command',
@@ -25,20 +32,41 @@ class GripperControl(Node):
             10
         )
 
-        # 0.0 = OPEN
+        # Existing movement ratios - unchanged
         self.open_position = [-0.3, -0.3, -0.2, -0.2]
-
-        # 1.0 = CLOSE
         self.close_position = [0.3, 0.3, 0.2, 0.2]
 
-        self.get_logger().info(
-            'Gripper node ready. '
-            'Use /gripper_command with values from 0.0 to 1.0'
+        self.joint_names = [
+            'geared_r_joint',
+            'geared_l_joint',
+            'finger_r_joint',
+            'finger_l_joint'
+        ]
+
+        # MoveIt GripperCommand Action Server
+        self.gripper_action_server = ActionServer(
+            self,
+            GripperCommand,
+            'gripper_controller/gripper_cmd',
+            execute_callback=self.execute_callback,
+            goal_callback=self.goal_callback,
+            cancel_callback=self.cancel_callback
         )
 
-    def command_callback(self, msg: Float64):
+        self.get_logger().info(
+            'Gripper node ready. Action: '
+            '/gripper_controller/gripper_cmd'
+        )
 
-        value = max(0.0, min(1.0, msg.data))
+    def goal_callback(self, goal_request):
+        return GoalResponse.ACCEPT
+
+    def cancel_callback(self, goal_handle):
+        return CancelResponse.ACCEPT
+
+    def calculate_positions(self, value):
+
+        value = max(0.0, min(1.0, value))
 
         positions = [
             open_pos + value * (close_pos - open_pos)
@@ -46,28 +74,65 @@ class GripperControl(Node):
             in zip(self.open_position, self.close_position)
         ]
 
-        trajectory = JointTrajectory()
+        return value, positions
 
-        trajectory.joint_names = [
-            'geared_r_joint',
-            'geared_l_joint',
-            'finger_r_joint',
-            'finger_l_joint'
-        ]
+    def publish_trajectory(self, positions):
+
+        trajectory = JointTrajectory()
+        trajectory.joint_names = self.joint_names
 
         point = JointTrajectoryPoint()
         point.positions = positions
         point.time_from_start.sec = 2
-        point.time_from_start.nanosec = 0
 
         trajectory.points = [point]
 
         self.command_pub.publish(trajectory)
 
+    def command_callback(self, msg: Float64):
+
+        value, positions = self.calculate_positions(msg.data)
+
+        self.publish_trajectory(positions)
+
         self.get_logger().info(
             f'gripper={value:.3f} -> '
             f'{[round(p, 3) for p in positions]}'
         )
+
+    async def execute_callback(self, goal_handle):
+
+        # finger_r_joint is the master joint (index 2)
+        master_position = goal_handle.request.command.position
+
+        master_open = self.open_position[2]
+        master_close = self.close_position[2]
+
+        value = (
+            (master_position - master_open)
+            / (master_close - master_open)
+        )
+
+        value, positions = self.calculate_positions(value)
+
+        self.get_logger().info(
+            f'MoveIt command: master={master_position:.3f}, '
+            f'gripper={value:.3f}'
+        )
+
+        self.publish_trajectory(positions)
+
+        await asyncio.sleep(2.1)
+
+        result = GripperCommand.Result()
+        result.position = positions[2]
+        result.effort = 0.0
+        result.stalled = False
+        result.reached_goal = True
+
+        goal_handle.succeed()
+
+        return result
 
 
 def main(args=None):
