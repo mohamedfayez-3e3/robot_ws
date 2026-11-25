@@ -18,6 +18,7 @@ def generate_launch_description():
         package="moveit_ros_move_group",
         executable="move_group",
         output="screen",
+        remappings=[("joint_states", "/moveit_joint_states")],
         parameters=[
             moveit_config.to_dict(),
             {

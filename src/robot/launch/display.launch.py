@@ -4,6 +4,8 @@ from ament_index_python.packages import get_package_share_directory
 
 import os
 
+import xacro
+
 
 def generate_launch_description():
 
@@ -15,8 +17,10 @@ def generate_launch_description():
         'arm_assembly.SLDASM.urdf'
     )
 
-    with open(urdf_file, 'r') as f:
-        robot_description = f.read()
+    robot_description = xacro.process_file(
+        urdf_file,
+        mappings={"moveit_gripper_mimic": "false"}
+    ).toxml()
 
     robot_state_publisher = Node(
         package='robot_state_publisher',

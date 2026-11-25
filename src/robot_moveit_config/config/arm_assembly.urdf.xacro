@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="arm_assembly">
+    <xacro:arg name="moveit_gripper_mimic" default="true" />
     <xacro:arg name="initial_positions_file" default="initial_positions.yaml" />
 
     <!-- Import arm_assembly urdf file -->

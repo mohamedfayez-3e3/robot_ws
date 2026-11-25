@@ -13,6 +13,7 @@
         <chain base_link="base_link" tip_link="wrist_2_link"/>
     </group>
     <group name="gripper">
+        <joint name="gripper_position_joint"/>
         <joint name="geared_r_joint"/>
         <joint name="geared_l_joint"/>
         <joint name="finger_r_joint"/>

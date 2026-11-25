@@ -1,5 +1,7 @@
 import os
 
+import xacro
+
 from launch import LaunchDescription
 from launch.actions import IncludeLaunchDescription, SetEnvironmentVariable
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -31,8 +33,10 @@ def generate_launch_description():
         'empty.sdf'
     )
 
-    with open(urdf_file, 'r') as f:
-        robot_description = f.read()
+    robot_description = xacro.process_file(
+        urdf_file,
+        mappings={"moveit_gripper_mimic": "false"}
+    ).toxml()
 
     gazebo = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -122,6 +126,7 @@ def generate_launch_description():
         package='robot',
         executable='gripper_control.py',
         name='gripper_control',
+        parameters=[{'use_sim_time': True}],
         output='screen'
     )
     

@@ -3,7 +3,8 @@
 Stephen Brawner (brawner@gmail.com) 
      Commit Version: 1.6.0-4-g7f85cfe  Build Version: 1.6.7995.38578
      For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
-<robot name="arm_assembly">
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="arm_assembly">
+  <xacro:arg name="moveit_gripper_mimic" default="false"/>
   <link name="world" />
   <joint name="base_world_joint" type="fixed">
     <parent link="world" />
@@ -340,6 +341,16 @@ Stephen Brawner (brawner@gmail.com)
       effort="100.0"
       velocity="3.0" />
   </joint>
+  <xacro:if value="$(arg moveit_gripper_mimic)">
+    <link name="gripper_position_link"/>
+    <joint name="gripper_position_joint" type="revolute">
+      <parent link="wrist_2_link"/>
+      <child link="gripper_position_link"/>
+      <axis xyz="0 0 1"/>
+      <limit lower="0.0" upper="1.0" effort="100.0" velocity="1.0"/>
+    </joint>
+  </xacro:if>
+
   <link
     name="geared_r_link">
     <inertial>
@@ -397,6 +408,9 @@ Stephen Brawner (brawner@gmail.com)
       upper="0.7"
       effort="100.0"
       velocity="3.0" />
+    <xacro:if value="$(arg moveit_gripper_mimic)">
+      <mimic joint="gripper_position_joint" multiplier="0.6" offset="-0.3"/>
+    </xacro:if>
   </joint>
   <link
     name="finger_r_link">
@@ -455,6 +469,9 @@ Stephen Brawner (brawner@gmail.com)
       upper="0.574"
       effort="100.0"
       velocity="3.0" />
+    <xacro:if value="$(arg moveit_gripper_mimic)">
+      <mimic joint="gripper_position_joint" multiplier="0.4" offset="-0.2"/>
+    </xacro:if>
   </joint>
   <link
     name="geared_l_link">
@@ -513,6 +530,9 @@ Stephen Brawner (brawner@gmail.com)
       upper="0.7"
       effort="100.0"
       velocity="3.0" />
+    <xacro:if value="$(arg moveit_gripper_mimic)">
+      <mimic joint="gripper_position_joint" multiplier="0.6" offset="-0.3"/>
+    </xacro:if>
   </joint>
   <link
     name="finger_l_link">
@@ -571,6 +591,9 @@ Stephen Brawner (brawner@gmail.com)
       upper="0.574"
       effort="100.0"
       velocity="3.0" />
+    <xacro:if value="$(arg moveit_gripper_mimic)">
+      <mimic joint="gripper_position_joint" multiplier="0.4" offset="-0.2"/>
+    </xacro:if>
   </joint>
 
   <ros2_control name="arm_assembly" type="system">

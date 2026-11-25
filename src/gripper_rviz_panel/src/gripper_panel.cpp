@@ -20,8 +20,11 @@ GripperPanel::GripperPanel(QWidget * parent)
 {
   auto * main_layout = new QVBoxLayout;
 
-  auto * title = new QLabel("Gripper Control");
+  auto * title = new QLabel("Direct Gripper Control");
   title->setAlignment(Qt::AlignCenter);
+
+  auto * note = new QLabel("Direct command; bypasses MoveIt Plan / Execute.");
+  note->setWordWrap(true);
 
   value_label_ = new QLabel("Gripper: 0.00");
   value_label_->setAlignment(Qt::AlignCenter);
@@ -39,6 +42,7 @@ GripperPanel::GripperPanel(QWidget * parent)
   buttons_layout->addWidget(close_button);
 
   main_layout->addWidget(title);
+  main_layout->addWidget(note);
   main_layout->addWidget(value_label_);
   main_layout->addWidget(slider_);
   main_layout->addLayout(buttons_layout);
